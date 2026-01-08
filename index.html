@@ -18,40 +18,27 @@
         }
 
         #app-wrapper { height: 100%; width: 100%; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; position: relative; }
-
         .glass { background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.08); }
         
-        .chat-container { 
-            flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px;
-            background: radial-gradient(circle at top, #111 0%, #050505 100%); scrollbar-width: none;
-        }
+        .chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: radial-gradient(circle at top, #111 0%, #050505 100%); scrollbar-width: none; }
         .chat-container::-webkit-scrollbar { display: none; }
 
-        .bubble { 
-            max-width: 85%; padding: 12px 16px; border-radius: 22px; font-size: 14px; 
-            position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word;
-        }
+        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 22px; font-size: 14px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; }
         .bubble-me { align-self: flex-end; background: var(--main); color: white; border-bottom-right-radius: 4px; }
         .bubble-them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; border: 1px solid #222; }
 
-        .logo-font { font-family: 'Syncopate', sans-serif; text-transform: uppercase; }
-        .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-        
-        /* Botões com BG e Bordas Adaptativas */
         .btn-theme { background-color: var(--main); border: 1px solid var(--main); transition: all 0.2s; }
-        .btn-outline-theme { background-color: rgba(255,255,255,0.05); border: 1px solid var(--main); }
         .border-theme { border-color: var(--main) !important; }
         
-        .menu-dropdown { 
-            position: absolute; top: 60px; right: 15px; width: 180px; 
-            border-radius: 1.2rem; display: none; flex-direction: column; 
-            z-index: 100; overflow: hidden; background: #151515; border: 1px solid var(--main);
-        }
+        .menu-dropdown { position: absolute; top: 60px; right: 15px; width: 180px; border-radius: 1.2rem; display: none; flex-direction: column; z-index: 100; overflow: hidden; background: #151515; border: 1px solid var(--main); }
         .menu-dropdown.active { display: flex; }
-        .message-img { border-radius: 12px; max-width: 100%; margin-top: 5px; }
-        .input-area { padding: 10px 15px 25px 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .recording-pulse { animation: pulse-red 1.5s infinite; color: #ef4444 !important; }
-        @keyframes pulse-red { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* Chamada */
+        #call-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.9); flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .call-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; items-center; justify-content: center; font-size: 24px; color: white; }
+
+        .recording-pulse { animation: pulse-red 1.5s infinite; color: #ef4444 !important; border-color: #ef4444 !important; }
+        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -63,7 +50,7 @@
         </div>
 
         <div id="settings-menu" class="hidden absolute top-16 right-6 glass p-5 rounded-3xl z-[100] w-64 shadow-2xl border-theme border">
-            <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Temas</h3>
+            <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 text-center">Personalizar Tema</h3>
             <div class="grid grid-cols-4 gap-2 mb-4">
                 <button onclick="changeTheme('#ff6a00')" class="w-8 h-8 rounded-full bg-[#ff6a00] border border-white/20"></button>
                 <button onclick="changeTheme('#22c55e')" class="w-8 h-8 rounded-full bg-[#22c55e] border border-white/20"></button>
@@ -74,28 +61,21 @@
         </div>
 
         <div class="text-center mb-8">
-            <h1 class="text-[12px] font-bold logo-font tracking-[0.6em]" id="brand-title" style="color: var(--main)">ELITE CHAT</h1>
-            <div class="flex items-center justify-center gap-2 mt-2">
-                <span id="login-dot" class="status-dot bg-gray-600"></span>
-                <p class="text-gray-500 text-[8px] font-bold uppercase tracking-widest">Aguardando Credenciais</p>
-            </div>
+            <h1 class="text-[14px] font-bold tracking-[0.6em]" id="brand-title" style="color: var(--main); font-family: 'Syncopate'">ELITE CHAT</h1>
+            <p class="text-gray-500 text-[8px] font-bold uppercase tracking-widest mt-1">Protocolo Militar P2P</p>
         </div>
 
-        <div class="w-full space-y-3 p-6 rounded-[2rem] border-theme border bg-[#0f0f0f]">
-            <input type="text" id="userName" placeholder="Seu Nome" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
-            <input type="text" id="roomName" placeholder="ID da Sala" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
-            <input type="password" id="roomPass" placeholder="Senha" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
+        <div class="w-full space-y-3 p-6 rounded-[2.5rem] border-theme border bg-[#0f0f0f]">
+            <input type="text" id="userName" placeholder="Seu Codinome" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
+            <input type="text" id="roomName" placeholder="Identificador da Sala" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
+            <input type="password" id="roomPass" placeholder="Chave de Acesso" class="w-full px-5 py-4 rounded-xl bg-black/40 border border-white/5 outline-none text-white text-sm focus:border-theme transition-all">
             
             <div class="flex flex-col gap-2 pt-2">
-                <button onclick="connect(true)" id="btn-host" class="w-full btn-theme py-4 rounded-xl font-bold text-sm text-white uppercase active:scale-95">Criar Sala</button>
-                <button onclick="connect(false)" id="btn-join" class="w-full btn-outline-theme py-4 rounded-xl font-bold text-sm text-white uppercase active:scale-95">Entrar</button>
+                <button onclick="connect(true)" id="btn-host" class="w-full btn-theme py-4 rounded-xl font-bold text-sm text-white uppercase active:scale-95">Criar Nodo</button>
+                <button onclick="connect(false)" id="btn-join" class="w-full bg-white/5 border-theme border py-4 rounded-xl font-bold text-sm text-white uppercase active:scale-95">Conectar</button>
             </div>
             <p id="status" class="text-center text-[10px] font-bold uppercase h-2 mt-2" style="color: var(--main)"></p>
         </div>
-
-        <footer class="text-center mt-6 text-gray-500 text-[10px]">
-            Made By: <a href="https://instagram.com/085_Teuzinnn" target="_blank" class="text-blue-400 font-semibold">@085_Teuzinnn</a>
-        </footer>
     </div>
 
     <div id="chat-screen" class="hidden flex-1 flex flex-col overflow-hidden">
@@ -103,22 +83,25 @@
             <div class="flex items-center gap-3">
                 <button onclick="confirmExit()" class="w-8 h-8 rounded-lg bg-white/5 border border-theme flex items-center justify-center text-white/40"><i class="fa-solid fa-chevron-left"></i></button>
                 <div class="flex flex-col">
-                    <span id="user-display" class="font-bold text-white text-sm truncate max-w-[140px]">Elite Chat</span>
+                    <span id="user-display" class="font-bold text-white text-sm truncate max-w-[120px]">Carregando...</span>
                     <div class="flex items-center gap-1">
-                        <span id="status-dot-inner" class="status-dot bg-red-500"></span>
-                        <span id="status-text" class="text-[8px] font-bold uppercase tracking-tighter text-red-500">Off-line</span>
+                        <span id="status-dot-inner" class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span id="status-text" class="text-[8px] font-bold uppercase text-red-500">Off-line</span>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleFullScreen()" class="w-10 h-10 rounded-lg bg-white/5 border border-theme flex items-center justify-center text-xl">📺</button>
-                <button onclick="toggleChatMenu()" class="w-10 h-10 rounded-lg bg-white/5 border border-theme flex items-center justify-center text-white/40"><i class="fa-solid fa-ellipsis-vertical text-lg"></i></button>
+            <div class="flex items-center gap-2">
+                <button onclick="startVoiceCall()" class="w-10 h-10 rounded-lg bg-white/5 border border-theme flex items-center justify-center text-green-500"><i class="fa-solid fa-phone"></i></button>
+                <button onclick="toggleChatMenu()" class="w-10 h-10 rounded-lg bg-white/5 border border-theme flex items-center justify-center text-white/40"><i class="fa-solid fa-ellipsis-vertical"></i></button>
             </div>
         </header>
 
         <div id="chat-menu" class="menu-dropdown glass">
             <button onclick="inviteFriend()" class="p-4 text-left text-xs border-b border-white/5 active:bg-white/5 text-white">
-                <i class="fa-solid fa-share-nodes mr-3" style="color: var(--main)"></i> Compartilhar Sala
+                <i class="fa-solid fa-share-nodes mr-3" style="color: var(--main)"></i> Compartilhar
+            </button>
+            <button onclick="toggleFullScreen()" class="p-4 text-left text-xs border-b border-white/5 active:bg-white/5 text-white">
+                <i class="fa-solid fa-expand mr-3" style="color: var(--main)"></i> Tela Cheia
             </button>
             <button onclick="panicMode()" class="p-4 text-left text-xs text-red-400 active:bg-white/5">
                 <i class="fa-solid fa-trash-can mr-3"></i> Limpar Tudo
@@ -126,30 +109,34 @@
         </div>
 
         <div id="messages" class="chat-container"></div>
-        
         <div id="typing-box" class="px-5 py-1 text-[9px] font-bold h-4 uppercase" style="color: var(--main)"></div>
 
         <div class="input-area glass shrink-0">
             <div id="reply-container" class="hidden p-2 mb-2 glass rounded-lg border-l-4 flex justify-between items-center" style="border-color: var(--main)">
-                <div class="truncate pr-4">
-                    <p id="reply-user" class="font-bold text-[9px] uppercase" style="color: var(--main)"></p>
-                    <p id="reply-text" class="text-[11px] opacity-60 truncate"></p>
-                </div>
+                <div class="truncate pr-4"><p id="reply-user" class="font-bold text-[9px] uppercase" style="color: var(--main)"></p><p id="reply-text" class="text-[11px] opacity-60 truncate"></p></div>
                 <button onclick="cancelReply()" class="text-white/20"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
             <div class="flex items-center gap-2">
                 <button onclick="toggleEmojis()" class="w-10 h-10 rounded-xl bg-white/5 border border-theme flex items-center justify-center text-white/30 text-xl"><i class="fa-regular fa-face-smile"></i></button>
                 <label class="w-10 h-10 rounded-xl bg-white/5 border border-theme flex items-center justify-center text-white/30 text-xl cursor-pointer">
-                    <input type="file" id="fileInput" class="hidden" onchange="handleFile(this)">
-                    <i class="fa-solid fa-paperclip"></i>
+                    <input type="file" id="fileInput" class="hidden" onchange="handleFile(this)"><i class="fa-solid fa-paperclip"></i>
                 </label>
                 <input type="text" id="msgInput" oninput="sendTyping()" placeholder="Mensagem..." class="flex-1 py-3 px-4 rounded-xl bg-white/5 border border-theme text-white text-sm outline-none">
                 <button id="recordBtn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()" class="w-10 h-10 rounded-xl bg-white/5 border border-theme flex items-center justify-center text-white/30 text-xl"><i class="fa-solid fa-microphone"></i></button>
-                <button onclick="send()" class="w-12 h-12 rounded-xl flex items-center justify-center active:scale-90 transition-all shadow-lg" style="background-color: var(--main); border: 1px solid var(--main)">
-                    <i class="fa-solid fa-paper-plane text-white text-sm"></i>
-                </button>
+                <button onclick="send()" class="w-12 h-12 rounded-xl flex items-center justify-center active:scale-90 transition-all bg-main" style="border: 1px solid var(--main)"><i class="fa-solid fa-paper-plane text-white text-sm"></i></button>
             </div>
+        </div>
+    </div>
+
+    <div id="call-overlay">
+        <div class="w-24 h-24 rounded-full border-4 border-theme flex items-center justify-center mb-6 animate-pulse">
+            <i class="fa-solid fa-user text-4xl text-white/20"></i>
+        </div>
+        <h2 id="call-name" class="text-xl font-bold mb-2">Chamada</h2>
+        <p id="call-status" class="text-sm text-white/40 mb-12">Conectando áudio seguro...</p>
+        <div class="flex gap-8">
+            <button id="decline-call" onclick="endCall()" class="call-call-btn bg-red-600 call-btn"><i class="fa-solid fa-phone-slash"></i></button>
+            <button id="accept-call" class="bg-green-600 call-btn hidden"><i class="fa-solid fa-phone"></i></button>
         </div>
     </div>
 
@@ -169,92 +156,95 @@
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-    let peer = null, conn = null, myName = "", myPass = "", currentRoom = "", otherUser = "";
-    let typingTimeout, replyData = null, mediaRecorder, audioChunks = [];
-    let isAFK = false;
+    // Configuração para conexão a distância (STUN Servers)
+    const peerConfig = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+    };
+
+    let peer = null, conn = null, myName = "", myPass = "", currentRoom = "", otherUser = "", otherPeerId = "";
+    let typingTimeout, replyData = null, mediaRecorder, audioChunks = [], currentCall = null;
 
     window.onload = () => {
-        const saved = JSON.parse(localStorage.getItem('elite_chat_v4') || '{}');
+        const saved = JSON.parse(localStorage.getItem('elite_v5') || '{}');
         if(saved.name) document.getElementById('userName').value = saved.name;
         if(saved.room) document.getElementById('roomName').value = saved.room;
         if(saved.pass) document.getElementById('roomPass').value = saved.pass;
         if(saved.theme) changeTheme(saved.theme);
         
-        // Listener de AFK
         document.addEventListener("visibilitychange", () => {
-            isAFK = document.hidden;
-            if(conn && conn.open) conn.send({ type: 'presence', status: isAFK ? 'AFK' : 'Online' });
+            if(conn?.open) conn.send({ type: 'presence', status: document.hidden ? 'AFK' : 'Online' });
         });
     };
 
     function changeTheme(color) {
         document.documentElement.style.setProperty('--main', color);
-        document.getElementById('brand-title').style.color = color;
-        document.getElementById('status').style.color = color;
-        
-        // Salva no LocalStorage
-        const data = JSON.parse(localStorage.getItem('elite_chat_v4') || '{}');
+        document.querySelectorAll('.btn-theme, .bg-main').forEach(el => el.style.backgroundColor = color);
+        document.querySelectorAll('.border-theme').forEach(el => el.style.borderColor = color);
+        const data = JSON.parse(localStorage.getItem('elite_v5') || '{}');
         data.theme = color;
-        localStorage.setItem('elite_chat_v4', JSON.stringify(data));
-        
-        // Atualiza elementos visuais
-        const themeBGs = document.querySelectorAll('.btn-theme, #btn-host');
-        themeBGs.forEach(el => el.style.backgroundColor = color);
-        themeBGs.forEach(el => el.style.borderColor = color);
-        
-        const themeBorders = document.querySelectorAll('.border-theme, .btn-outline-theme, #setup-screen > div.w-full, #settings-menu, header, #emoji-menu, #msgInput, .w-10, .w-8');
-        themeBorders.forEach(el => el.style.borderColor = color);
-    }
-
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-        else document.exitFullscreen();
-    }
-
-    function toggleSettings() { document.getElementById('settings-menu').classList.toggle('hidden'); }
-    function toggleChatMenu() { document.getElementById('chat-menu').classList.toggle('active'); }
-
-    function encrypt(t) { return CryptoJS.AES.encrypt(t, myPass).toString(); }
-    function decrypt(c) { 
-        try { return CryptoJS.AES.decrypt(c, myPass).toString(CryptoJS.enc.Utf8); } 
-        catch(e) { return "🔒 Conteúdo Protegido"; }
+        localStorage.setItem('elite_v5', JSON.stringify(data));
     }
 
     function connect(isHost) {
         myName = document.getElementById('userName').value.trim();
         currentRoom = document.getElementById('roomName').value.trim().toLowerCase();
         myPass = document.getElementById('roomPass').value;
-        if(!myName || !currentRoom || !myPass) return alert("Preencha tudo!");
+        if(!myName || !currentRoom || !myPass) return;
         
-        // Salva dados no LocalStorage
-        const data = JSON.parse(localStorage.getItem('elite_chat_v4') || '{}');
-        data.name = myName; data.room = currentRoom; data.pass = myPass;
-        localStorage.setItem('elite_chat_v4', JSON.stringify(data));
+        localStorage.setItem('elite_v5', JSON.stringify({name:myName, room:currentRoom, pass:myPass, theme: getComputedStyle(document.documentElement).getPropertyValue('--main')}));
+        const peerId = `elite-v5-${currentRoom}`;
+        document.getElementById('status').innerText = "Abrindo canal...";
 
-        const peerId = `elite-v4-${currentRoom}`;
-        document.getElementById('status').innerText = "Encriptando...";
+        peer = new Peer(isHost ? peerId : null, { config: peerConfig });
 
-        if(isHost) {
-            peer = new Peer(peerId);
-            peer.on('open', () => { document.getElementById('status').innerText = "Frequência Aberta..."; openChat(); });
-            peer.on('connection', (c) => { if(conn) return; setupConn(c); });
-        } else {
-            peer = new Peer();
-            peer.on('open', () => { setupConn(peer.connect(peerId, { metadata: { user: myName } })); });
-            peer.on('error', () => { document.getElementById('status').innerText = "Frequência Offline"; });
-        }
+        peer.on('open', (id) => {
+            if(isHost) {
+                document.getElementById('status').innerText = "Aguardando par...";
+                openChat();
+            } else {
+                const c = peer.connect(peerId, { metadata: { user: myName } });
+                setupConn(c);
+            }
+        });
+
+        peer.on('connection', (c) => {
+            if(conn) return c.close();
+            setupConn(c);
+        });
+
+        peer.on('call', (call) => {
+            document.getElementById('call-overlay').style.display = 'flex';
+            document.getElementById('call-name').innerText = otherUser;
+            document.getElementById('call-status').innerText = "Chamada de Voz Recebida...";
+            const acceptBtn = document.getElementById('accept-call');
+            acceptBtn.classList.remove('hidden');
+            acceptBtn.onclick = async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                call.answer(stream);
+                handleCall(call);
+                acceptBtn.classList.add('hidden');
+            };
+        });
+
+        peer.on('error', (err) => {
+            document.getElementById('status').innerText = "Erro: " + err.type;
+            if(err.type === 'peer-unavailable') document.getElementById('status').innerText = "Sala Offline";
+        });
     }
 
     function setupConn(c) {
         conn = c;
         conn.on('open', () => {
             otherUser = conn.metadata?.user || "Parceiro";
-            updateHeader();
+            otherPeerId = conn.peer;
             openChat();
             updateStatus('Online');
             conn.send({ type: 'presence', status: 'Online' });
         });
-
         conn.on('data', d => {
             if(d.type === 'presence') updateStatus(d.status);
             if(d.type === 'text') renderMsg(d.user, decrypt(d.msg), false, d.reply);
@@ -266,40 +256,96 @@
                 typingTimeout = setTimeout(() => document.getElementById('typing-box').innerText = "", 2000);
             }
             if(d.type === 'clear') { document.getElementById('messages').innerHTML = ""; }
-            if(d.user && !otherUser) { otherUser = d.user; updateHeader(); }
         });
-
-        conn.on('close', () => updateStatus('Off-line'));
     }
+
+    // SISTEMA DE CHAMADA
+    async function startVoiceCall() {
+        if(!conn?.open) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const call = peer.call(conn.peer, stream);
+            document.getElementById('call-overlay').style.display = 'flex';
+            document.getElementById('call-name').innerText = otherUser;
+            document.getElementById('call-status').innerText = "Chamando...";
+            handleCall(call);
+        } catch(e) { alert("Permita o uso do microfone!"); }
+    }
+
+    function handleCall(call) {
+        currentCall = call;
+        call.on('stream', (remoteStream) => {
+            document.getElementById('call-status').innerText = "Em Chamada (Segura)";
+            const audio = document.createElement('audio');
+            audio.srcObject = remoteStream;
+            audio.play();
+        });
+        call.on('close', () => endCall());
+    }
+
+    function endCall() {
+        if(currentCall) currentCall.close();
+        document.getElementById('call-overlay').style.display = 'none';
+        currentCall = null;
+    }
+
+    // CORREÇÃO DE ÁUDIO (MOBILE FRIENDLY)
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    conn.send({ type: 'audio', user: myName, data: reader.result });
+                    renderAudio("Você", reader.result, true);
+                };
+                reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+            };
+            mediaRecorder.start();
+            document.getElementById('recordBtn').classList.add('recording-pulse');
+        } catch(e) { console.error(e); }
+    }
+
+    function stopRecording() {
+        if(mediaRecorder?.state === 'recording') {
+            mediaRecorder.stop();
+            document.getElementById('recordBtn').classList.remove('recording-pulse');
+        }
+    }
+
+    function renderAudio(u, d, isMe) {
+        const div = document.createElement('div');
+        div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-them'}`;
+        if(isMe) div.style.backgroundColor = 'var(--main)';
+        div.innerHTML = `<div class='text-[10px] opacity-50 mb-1 uppercase'>${u}</div><audio src="${d}" controls class="h-8 w-40"></audio>`;
+        document.getElementById('messages').appendChild(div);
+        document.getElementById('messages').scrollTo(0, document.getElementById('messages').scrollHeight);
+    }
+
+    // RESTANTE DAS FUNÇÕES
+    function encrypt(t) { return CryptoJS.AES.encrypt(t, myPass).toString(); }
+    function decrypt(c) { try { return CryptoJS.AES.decrypt(c, myPass).toString(CryptoJS.enc.Utf8); } catch(e) { return "🔒 Protegido"; } }
 
     function updateStatus(label) {
         const dot = document.getElementById('status-dot-inner');
         const text = document.getElementById('status-text');
         text.innerText = label;
-        
-        if(label === 'Online') { 
-            dot.className = "status-dot bg-green-500 animate-pulse"; 
-            text.className = "text-[8px] font-bold uppercase tracking-tighter text-green-500";
-        } else if(label === 'AFK') { 
-            dot.className = "status-dot bg-yellow-500"; 
-            text.className = "text-[8px] font-bold uppercase tracking-tighter text-yellow-500";
-        } else { 
-            dot.className = "status-dot bg-red-500"; 
-            text.className = "text-[8px] font-bold uppercase tracking-tighter text-red-500";
-        }
+        dot.className = `w-2 h-2 rounded-full ${label === 'Online' ? 'bg-green-500 animate-pulse' : label === 'AFK' ? 'bg-yellow-500' : 'bg-red-500'}`;
+        text.className = `text-[8px] font-bold uppercase ${label === 'Online' ? 'text-green-500' : label === 'AFK' ? 'text-yellow-500' : 'text-red-500'}`;
     }
 
-    function updateHeader() { document.getElementById('user-display').innerText = `${myName} & ${otherUser}`; }
-    function openChat() { document.getElementById('setup-screen').classList.add('hidden'); document.getElementById('chat-screen').classList.remove('hidden'); changeTheme(JSON.parse(localStorage.getItem('elite_chat_v4') || '{}').theme || '#ff6a00'); }
-
+    function openChat() { document.getElementById('setup-screen').classList.add('hidden'); document.getElementById('chat-screen').classList.remove('hidden'); document.getElementById('user-display').innerText = otherUser || myName; }
+    
     function send() {
         const input = document.getElementById('msgInput');
         if(!input.value.trim() || !conn) return;
-        const data = { type: 'text', user: myName, msg: encrypt(input.value), reply: replyData };
-        conn.send(data);
-        renderMsg("Você", input.value, true, replyData);
-        input.value = "";
-        cancelReply();
+        const msg = input.value;
+        conn.send({ type: 'text', user: myName, msg: encrypt(msg), reply: replyData });
+        renderMsg("Você", msg, true, replyData);
+        input.value = ""; cancelReply();
     }
 
     function renderMsg(user, msg, isMe, reply) {
@@ -314,6 +360,23 @@
         container.scrollTo(0, container.scrollHeight);
     }
 
+    function setReply(u, t) { replyData = {user:u, text:t}; document.getElementById('reply-container').classList.remove('hidden'); document.getElementById('reply-user').innerText = u; document.getElementById('reply-text').innerText = t; }
+    function cancelReply() { replyData = null; document.getElementById('reply-container').classList.add('hidden'); }
+    function sendTyping() { if(conn) conn.send({ type:'typing', user:myName }); }
+    function toggleEmojis() { document.getElementById('emoji-menu').classList.toggle('hidden'); }
+    function addEmoji(e) { document.getElementById('msgInput').value += e; toggleEmojis(); }
+    function toggleChatMenu() { document.getElementById('chat-menu').classList.toggle('active'); }
+    function toggleSettings() { document.getElementById('settings-menu').classList.toggle('hidden'); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    function panicMode() { if(confirm("Limpar conversa?")) { conn.send({type:'clear'}); document.getElementById('messages').innerHTML = ""; toggleChatMenu(); } }
+    
+    function inviteFriend() { 
+        const txt = `Elite Chat - Entrar\nID: ${currentRoom}\nChave: ${myPass}`;
+        navigator.clipboard.writeText(txt); alert("Copiado com sucesso!"); toggleChatMenu(); 
+    }
+
+    function confirmExit() { if(confirm("Sair?")) location.reload(); }
+    function clearStoredLogin() { localStorage.clear(); location.reload(); }
     function handleFile(input) {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -323,55 +386,16 @@
         };
         reader.readAsDataURL(file);
     }
-
     function renderFile(user, data, isMe) {
         const div = document.createElement('div');
         div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-them'}`;
         if(isMe) div.style.backgroundColor = 'var(--main)';
-        let content = data.isImg ? `<img src="${data.data}" class="message-img">` : `<div class="p-1 text-xs"><i class="fa-solid fa-file mr-2"></i>${data.name}</div>`;
-        div.innerHTML = `${content}<a href="${data.data}" download="${data.name}" class="text-[8px] block text-center mt-2 bg-white/10 py-1 rounded">DOWNLOAD</a>`;
+        let content = data.isImg ? `<img src="${data.data}" class="rounded-lg max-w-full">` : `<div class="p-1 text-xs"><i class="fa-solid fa-file mr-2"></i>${data.name}</div>`;
+        div.innerHTML = `${content}<a href="${data.data}" download="${data.name}" class="text-[8px] block text-center mt-2 bg-white/10 py-1 rounded">BAIXAR</a>`;
         document.getElementById('messages').appendChild(div);
         document.getElementById('messages').scrollTo(0, document.getElementById('messages').scrollHeight);
     }
-
-    async function startRecording() {
-        try {
-            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(s); audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    conn.send({ type:'audio', user:myName, data:reader.result });
-                    renderAudio("Você", reader.result, true);
-                };
-                reader.readAsDataURL(new Blob(audioChunks));
-            };
-            mediaRecorder.start();
-            document.getElementById('recordBtn').classList.add('recording-pulse');
-        } catch(e) {}
-    }
-    function stopRecording() { if(mediaRecorder?.state !== 'inactive') { mediaRecorder.stop(); document.getElementById('recordBtn').classList.remove('recording-pulse'); } }
-
-    function renderAudio(u, d, isMe) {
-        const div = document.createElement('div');
-        div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-them'}`;
-        if(isMe) div.style.backgroundColor = 'var(--main)';
-        div.innerHTML = `<audio src="${d}" controls class="h-8 w-40"></audio>`;
-        document.getElementById('messages').appendChild(div);
-        document.getElementById('messages').scrollTo(0, document.getElementById('messages').scrollHeight);
-    }
-
-    function panicMode() { if(confirm("Limpar conversa?")) { conn.send({type:'clear'}); document.getElementById('messages').innerHTML = ""; toggleChatMenu(); } }
-    function inviteFriend() { navigator.clipboard.writeText(`ID: ${currentRoom} | CHAVE: ${myPass}`); alert("Copiado!"); toggleChatMenu(); }
-    function sendTyping() { if(conn) conn.send({ type:'typing', user:myName }); }
-    function setReply(u, t) { replyData = {user:u, text:t}; document.getElementById('reply-container').classList.remove('hidden'); document.getElementById('reply-user').innerText = u; document.getElementById('reply-text').innerText = t; }
-    function cancelReply() { replyData = null; document.getElementById('reply-container').classList.add('hidden'); }
-    function toggleEmojis() { document.getElementById('emoji-menu').classList.toggle('hidden'); }
-    function addEmoji(e) { document.getElementById('msgInput').value += e; toggleEmojis(); }
-    function confirmExit() { if(confirm("Sair?")) location.reload(); }
     document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key==='Enter') send(); });
-    function clearStoredLogin() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>

@@ -65,8 +65,9 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="clearMessages()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">Limpar</button>
-                <button onclick="exitChat()" class="text-[8px] font-black text-red-500 px-2 py-1 border border-red-500/20 rounded-lg hover:bg-red-500/10 uppercase">Sair</button>
+                <button onclick="exportChat()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">📤</button>
+                <button onclick="clearMessages()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">🧹</button>
+                <button onclick="exitChat()" class="text-[8px] font-black text-red-500 px-2 py-1 border border-red-500/20 rounded-lg hover:bg-red-500/10 uppercase">🚪</button>
             </div>
         </div>
 
@@ -200,7 +201,7 @@
             if(!txt) return;
             const encrypted = encrypt(txt);
             connections.forEach(c => c.send({type:'msg', user: myNick, txt: encrypted}));
-            renderMsg("Você", txt, 'self');
+            renderMsg(myNick, txt, 'self');
             input.value = "";
         }
 
@@ -212,7 +213,7 @@
             reader.onload = () => {
                 const fileData = { name: file.name, type: file.type, size: file.size, bin: reader.result };
                 connections.forEach(c => c.send({type:'file', user: myNick, file: fileData}));
-                renderMsg("Você", fileData, 'self', true);
+                renderMsg(myNick, fileData, 'self', true);
             };
             reader.readAsDataURL(file);
         }
@@ -221,6 +222,7 @@
             const container = $('#chat-messages');
             const wrapper = document.createElement('div');
             wrapper.className = `flex flex-col mb-3 msg-pop ${side === 'self' ? 'items-end' : 'items-start'}`;
+            wrapper.dataset.sender = user;
             const bubble = document.createElement('div');
             bubble.className = `p-3 rounded-2xl text-xs max-w-[85%] ${side === 'self' ? 'theme-bg text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none theme-border'}`;
             
@@ -242,12 +244,36 @@
                 btn.className = "block text-center text-[10px] font-black underline uppercase bg-white/5 py-1 rounded";
                 btn.innerText = "Baixar";
                 bubble.appendChild(btn);
+                bubble.dataset.text = `[Arquivo: ${content.name}]`;
             } else {
                 bubble.innerText = content;
+                bubble.dataset.text = content;
             }
             wrapper.appendChild(bubble);
             container.appendChild(wrapper);
             container.scrollTop = container.scrollHeight;
+        }
+
+        function exportChat() {
+            const msgs = document.querySelectorAll('#chat-messages > .msg-pop');
+            if(msgs.length === 0) return;
+            const participants = new Set([myNick]);
+            const partnerName = $('#partner-name').innerText;
+            if(partnerName !== "Aguardando...") participants.add(partnerName);
+            let output = "__________CHAT P2P__________\n";
+            output += Array.from(participants).join(", ") + ".\n\n";
+            msgs.forEach(m => {
+                const sender = m.dataset.sender;
+                const text = m.querySelector('div').dataset.text;
+                if(sender && text) output += `${sender}: ${text}\n`;
+            });
+            const blob = new Blob([output], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conversa-${$('#room').value}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function updateStatusUI(status) {

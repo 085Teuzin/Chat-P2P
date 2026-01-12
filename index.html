@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat P2P - Ultimate Edition</title>
+    <title>Chat P2P - Made By: @085_Teuzinnn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #f97316; --glow: rgba(249, 115, 22, 0.4); }
-        body { background: radial-gradient(circle at top, #0f172a 0%, #05070a 100%); color: #f8fafc; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; }
+        body { background: radial-gradient(circle at top, #0f172a 0%, #05070a 100%); color: #f8fafc; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; }
         .theme-border { border: 1px solid var(--main) !important; }
         .theme-text { color: var(--main) !important; }
         .theme-bg { background-color: var(--main) !important; }
@@ -21,109 +21,265 @@
         #chat-messages::-webkit-scrollbar-thumb { background: var(--main); border-radius: 10px; }
         .msg-pop { animation: slideIn 0.2s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .call-log { background: rgba(255,255,255,0.05); padding: 6px 15px; border-radius: 20px; font-size: 10px; color: #94a3b8; margin: 10px auto; display: inline-block; border: 1px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
+        .call-anim { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
+<body class="p-4">
 
     <div id="lobby-ui" class="w-full max-w-2xl flex flex-col items-center animate__animated animate__fadeIn">
         <div class="w-full flex justify-end gap-2 mb-2">
-            <button onclick="openSettings()" class="w-10 h-10 flex items-center justify-center glass-panel rounded-xl hover:scale-110 transition-all theme-border">⚙️</button>
-            <button id="fs-btn" class="w-10 h-10 flex items-center justify-center glass-panel rounded-xl hover:scale-110 transition-all theme-border">📺</button>
+            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center glass-panel rounded-lg hover:scale-110 transition-all theme-border text-xs">⚙️</button>
+            <button id="fs-btn" class="w-8 h-8 flex items-center justify-center glass-panel rounded-lg hover:scale-110 transition-all theme-border text-xs">📺</button>
         </div>
         <div class="text-center mb-6">
-            <h1 class="text-5xl font-[900] theme-text uppercase tracking-tighter">Chat P2P</h1>
-            <h2 class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Segurança máxima e chamadas em tempo real</h2>
+            <h1 class="text-4xl font-[900] theme-text uppercase tracking-tighter">Chat P2P</h1>
+            <h2 class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Chamadas de Voz Ativadas</h2>
         </div>
-        <div class="w-full glass-panel p-8 rounded-[2.5rem] theme-shadow space-y-4">
-            <input type="text" id="nick" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none theme-border transition-all" placeholder="👤 Seu apelido">
-            <div class="grid grid-cols-2 gap-4">
-                <input type="text" id="room" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none theme-border" placeholder="🆔 Sala">
-                <input type="password" id="pass" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none theme-border" placeholder="🔑 Senha">
+        <div id="lobby-box" class="w-full glass-panel p-6 rounded-[2rem] theme-shadow space-y-4">
+            <div class="space-y-3">
+                <input type="text" id="nick" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="👤 Seu apelido">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="room" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="🆔️ Sala">
+                    <input type="password" id="pass" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="🔑 Senha">
+                </div>
             </div>
-            <div class="grid grid-cols-2 gap-4 pt-4">
-                <button onclick="start(true)" class="theme-bg text-white font-black py-4 rounded-2xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all">Criar</button>
-                <button onclick="start(false)" class="bg-transparent theme-text border-2 theme-border font-black py-4 rounded-2xl uppercase tracking-widest hover:bg-white/5 active:scale-95 transition-all">Entrar</button>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="start(true)" class="theme-bg text-white font-black py-4 rounded-xl active:scale-95 transition-all text-xs uppercase tracking-widest">Criar Sala</button>
+                <button onclick="start(false)" class="bg-transparent theme-text font-black py-4 rounded-xl active:scale-95 transition-all theme-border text-xs uppercase tracking-widest">Entrar</button>
             </div>
         </div>
     </div>
 
-    <main id="chat-ui" class="hidden w-full max-w-4xl flex-col glass-panel rounded-[2.5rem] overflow-hidden theme-shadow h-[88vh] animate__animated animate__zoomIn">
+    <main id="chat-ui" class="hidden w-full max-w-3xl flex-col glass-panel rounded-[2rem] overflow-hidden animate__animated animate__zoomIn theme-shadow h-[85vh]">
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
             <div class="flex items-center gap-3">
-                <div id="status-ball" class="w-3 h-3 rounded-full bg-red-500 transition-all duration-500"></div>
+                <div id="status-ball" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_red]"></div>
                 <div>
-                    <p id="partner-display" class="text-xs font-black theme-text uppercase tracking-tighter">Aguardando...</p>
-                    <p id="conn-status" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Off-line</p>
+                    <p id="partner-name" class="text-[10px] font-black uppercase tracking-wider theme-text">Aguardando...</p>
+                    <p id="conn-status" class="text-[8px] text-gray-500 uppercase font-bold tracking-widest">Desconectado</p>
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="startCall()" class="w-9 h-9 flex items-center justify-center glass-panel rounded-xl theme-border">📞</button>
-                <button onclick="shareRoom()" class="w-9 h-9 flex items-center justify-center glass-panel rounded-xl theme-border">🔗</button>
-                <button onclick="exportChat()" class="w-9 h-9 flex items-center justify-center glass-panel rounded-xl theme-border">📤</button>
-                <button onclick="clearMessages()" class="w-9 h-9 flex items-center justify-center glass-panel rounded-xl theme-border">🧹</button>
-                <button onclick="exitChat()" class="w-9 h-9 flex items-center justify-center glass-panel rounded-xl border border-red-500/50 text-red-500">🚪</button>
+                <button onclick="startCall()" id="call-btn" class="text-[8px] font-black theme-text px-2 py-1 border border-green-500/20 rounded-lg hover:bg-green-500/10 uppercase">📞</button>
+                <button onclick="shareRoom()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">🔗</button>
+                <button onclick="exportChat()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">📤</button>
+                <button onclick="clearMessages()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">🧹</button>
+                <button onclick="exitChat()" class="text-[8px] font-black text-red-500 px-2 py-1 border border-red-500/20 rounded-lg hover:bg-red-500/10 uppercase">🚪</button>
             </div>
         </div>
-
-        <div id="chat-messages" class="flex-grow p-6 overflow-y-auto flex flex-col gap-4"></div>
-        <div id="typing-ui" class="px-6 text-[10px] theme-text italic h-4" style="display:none"></div>
-
-        <div class="p-4 bg-black/60 border-t border-white/10 flex items-center gap-3">
+        <div id="chat-messages" class="flex-grow p-4 overflow-y-auto flex flex-col gap-3"></div>
+        <div id="typing-ui" class="px-4 text-[10px] theme-text font-bold" style="display:none">...</div>
+        <div class="p-3 bg-black/50 border-t border-white/10 flex items-center gap-2">
             <label class="cursor-pointer group">
-                <div class="w-12 h-12 glass-panel rounded-2xl flex items-center justify-center theme-border text-xl group-hover:scale-110 transition-all">📎</div>
+                <div class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center theme-border text-lg group-hover:scale-110 transition-all">📎</div>
                 <input type="file" id="attach" class="hidden" onchange="handleFile(this)">
             </label>
-            <input type="text" id="msg-input" class="flex-grow bg-black/40 border border-white/10 rounded-2xl px-5 py-3.5 focus:outline-none theme-border text-sm" placeholder="Escreva aqui...">
-            <button onclick="sendMsg()" class="w-12 h-12 theme-bg rounded-2xl flex items-center justify-center theme-shadow active:scale-90 transition-all">
-                <svg viewBox="0 0 24 24" class="w-6 h-6 fill-white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            <input type="text" id="msg-input" class="flex-grow bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none theme-border transition-all text-xs" placeholder="Escreva algo...">
+            <button onclick="sendMsg()" class="w-10 h-10 theme-bg rounded-xl flex items-center justify-center active:scale-90 transition-all theme-border">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
             </button>
         </div>
     </main>
 
-    <div id="call-modal" class="fixed inset-0 bg-black/95 hidden z-[100] flex flex-col items-center justify-center">
-        <div class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center animate-pulse mb-8 text-3xl">📞</div>
-        <h2 id="caller-name" class="text-2xl font-black theme-text uppercase mb-10">Recebendo ligação...</h2>
-        <div class="flex gap-8">
-            <button onclick="answerCall()" class="w-16 h-16 bg-green-500 rounded-full text-2xl shadow-xl hover:scale-110 transition-all">✔️</button>
-            <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 rounded-full text-2xl shadow-xl hover:scale-110 transition-all">✖️</button>
+    <div id="call-modal" class="fixed inset-0 bg-black/90 hidden z-[60] flex flex-col items-center justify-center p-6">
+        <div class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center call-anim mb-8">
+            <span class="text-4xl">📞</span>
         </div>
+        <h2 id="caller-name" class="text-2xl font-black theme-text mb-2 uppercase tracking-tighter">Ligação...</h2>
+        <p class="text-gray-400 text-xs mb-10 uppercase tracking-widest">Chamada de Voz Recebida</p>
+        <div class="flex gap-6">
+            <button onclick="answerCall()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-all">✔️</button>
+            <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-all">✖️</button>
+        </div>
+    </div>
+
+    <div id="active-call-ui" class="fixed bottom-24 right-6 hidden z-[55] glass-panel p-4 rounded-2xl theme-border flex items-center gap-4 animate__animated animate__slideInRight">
+        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        <span class="text-[10px] font-black uppercase tracking-widest">Em Ligação</span>
+        <button onclick="endCall()" class="bg-red-500 px-3 py-1 rounded-lg text-[10px] font-bold">DESLIGAR</button>
     </div>
 
     <div id="modal" class="fixed inset-0 bg-black/95 hidden z-50 flex items-center justify-center p-6 animate__animated animate__fadeIn">
         <div class="glass-panel w-full max-w-xs rounded-[2rem] p-6 space-y-5 theme-border">
-            <h3 class="font-black text-center theme-text tracking-widest text-[11px] uppercase">Cor Do Tema</h3>
+            <h3 class="font-black text-center theme-text tracking-widest text-[11px] uppercase">Configurações</h3>
             <div class="grid grid-cols-5 gap-3 justify-items-center">
-                <button onclick="setTheme('#f97316')" class="w-9 h-9 rounded-xl bg-orange-500 border border-white/10"></button>
-                <button onclick="setTheme('#22c55e')" class="w-9 h-9 rounded-xl bg-green-500 border border-white/10"></button>
-                <button onclick="setTheme('#3b82f6')" class="w-9 h-9 rounded-xl bg-blue-500 border border-white/10"></button>
-                <button onclick="setTheme('#ef4444')" class="w-9 h-9 rounded-xl bg-red-500 border border-white/10"></button>
-                <button onclick="setTheme('#a855f7')" class="w-9 h-9 rounded-xl bg-purple-500 border border-white/10"></button>
+                <button onclick="setTheme('#f97316')" class="w-9 h-9 rounded-xl bg-orange-500"></button>
+                <button onclick="setTheme('#22c55e')" class="w-9 h-9 rounded-xl bg-green-500"></button>
+                <button onclick="setTheme('#3b82f6')" class="w-9 h-9 rounded-xl bg-blue-500"></button>
+                <button onclick="setTheme('#ef4444')" class="w-9 h-9 rounded-xl bg-red-500"></button>
+                <button onclick="setTheme('#a855f7')" class="w-9 h-9 rounded-xl bg-purple-500"></button>
             </div>
-            <div class="space-y-2 pt-2">
-                <button onclick="clearAllData()" class="w-full py-3 bg-red-900/10 text-red-500 border border-red-900/30 rounded-xl font-bold text-[9px] uppercase">Apagar Dados</button>
-                <button onclick="closeSettings()" class="w-full py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase">Voltar</button>
-            </div>
+            <button onclick="clearAllData()" class="w-full py-3 bg-red-900/10 text-red-500 border border-red-900/30 rounded-xl font-bold text-[9px] uppercase">Apagar Dados</button>
+            <button onclick="closeSettings()" class="w-full py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase">Voltar</button>
         </div>
     </div>
 
-    <audio id="ring-tone" src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" loop></audio>
     <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+    <audio id="ring-sound" src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" loop preload="auto"></audio>
 
     <script>
+        let peer = null, connections = [], myNick = "", roomKey = "", currentCall = null, localStream = null;
         const $ = document.querySelector.bind(document);
-        let peer, connections = [], myNick, roomKey, currentCall, localStream;
-        const ringTone = $('#ring-tone');
-        const notifSound = $('#notif-sound');
 
-        // --- INICIALIZAÇÃO E TEMAS ---
+        // --- SISTEMA DE CHAMADA ---
+
+        async function startCall() {
+            if (connections.length === 0) return alert("Ninguém na sala para ligar!");
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const partnerId = connections[0].peer;
+                currentCall = peer.call(partnerId, localStream);
+                setupCallHandlers(currentCall);
+                $('#active-call-ui').classList.remove('hidden');
+                sysMsg("SISTEMA", "Chamando parceiro...");
+            } catch (err) {
+                alert("Erro ao acessar microfone. Verifique as permissões HTTPS.");
+            }
+        }
+
+        function setupCallHandlers(call) {
+            call.on('stream', remoteStream => {
+                const audio = new Audio();
+                audio.srcObject = remoteStream;
+                audio.play();
+                $('#active-call-ui').classList.remove('hidden');
+                $('#ring-sound').pause();
+            });
+            call.on('close', () => endCallUI());
+        }
+
+        function answerCall() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                localStream = stream;
+                currentCall.answer(localStream);
+                setupCallHandlers(currentCall);
+                $('#call-modal').classList.add('hidden');
+                $('#ring-sound').pause();
+            });
+        }
+
+        function rejectCall() {
+            currentCall.close();
+            $('#call-modal').classList.add('hidden');
+            $('#ring-sound').pause();
+        }
+
+        function endCall() {
+            if (currentCall) currentCall.close();
+            endCallUI();
+        }
+
+        function endCallUI() {
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            $('#active-call-ui').classList.add('hidden');
+            $('#call-modal').classList.add('hidden');
+            $('#ring-sound').pause();
+            currentCall = null;
+        }
+
+        // --- LÓGICA DO CHAT ---
+
         window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            if(params.has('sala')) $('#room').value = params.get('sala');
+            if(params.has('senha')) $('#pass').value = params.get('senha');
             $('#nick').value = localStorage.getItem('tp_nick') || '';
-            $('#room').value = localStorage.getItem('tp_room') || '';
-            $('#pass').value = localStorage.getItem('tp_pass') || '';
-            const c = localStorage.getItem('tp_color') || '#f97316';
-            setTheme(c);
+            $('#room').value = $('#room').value || localStorage.getItem('tp_room') || '';
+            $('#pass').value = $('#pass').value || localStorage.getItem('tp_pass') || '';
+            if(localStorage.getItem('tp_color')) setTheme(localStorage.getItem('tp_color'));
         };
+
+        function start(isHost) {
+            myNick = $('#nick').value.trim();
+            const r = $('#room').value.trim().toLowerCase().replace(/\s+/g, '-');
+            roomKey = $('#pass').value.trim();
+            if(!myNick || !r || !roomKey) return;
+            
+            localStorage.setItem('tp_nick', myNick);
+            localStorage.setItem('tp_room', r);
+            localStorage.setItem('tp_pass', roomKey);
+
+            peer = new Peer(isHost ? `room-${r}` : undefined, { debug: 1 });
+            
+            peer.on('open', () => {
+                $('#lobby-ui').classList.add('hidden');
+                $('#chat-ui').classList.replace('hidden', 'flex');
+                if(!isHost) connectToPeer(`room-${r}`);
+            });
+
+            peer.on('connection', setupConn);
+
+            // Handler para receber ligação
+            peer.on('call', call => {
+                currentCall = call;
+                $('#caller-name').innerText = $('#partner-name').innerText;
+                $('#call-modal').classList.remove('hidden');
+                $('#ring-sound').play();
+            });
+        }
+
+        function connectToPeer(id) {
+            setupConn(peer.connect(id, { reliable: true }));
+        }
+
+        function setupConn(c) {
+            c.on('open', () => {
+                c.send({type:'auth', pass: CryptoJS.AES.encrypt('valid', roomKey).toString(), nick: myNick});
+                c.on('data', data => {
+                    if(data.type === 'auth') {
+                        $('#partner-name').innerText = data.nick;
+                        updateStatusUI('online');
+                        sysMsg("SISTEMA", `${data.nick} entrou.`);
+                    }
+                    if(data.type === 'msg') renderMsg(data.user, CryptoJS.AES.decrypt(data.txt, roomKey).toString(CryptoJS.enc.Utf8), 'other');
+                    if(data.type === 'typing') toggleTypingUI(true, data.user);
+                    if(data.type === 'status') updateStatusUI(data.val);
+                });
+                connections.push(c);
+            });
+        }
+
+        function sendMsg() {
+            const txt = $('#msg-input').value.trim();
+            if(!txt || connections.length === 0) return;
+            connections.forEach(c => c.send({type:'msg', user: myNick, txt: CryptoJS.AES.encrypt(txt, roomKey).toString()}));
+            renderMsg(myNick, txt, 'self');
+            $('#msg-input').value = "";
+        }
+
+        function renderMsg(user, content, side) {
+            const div = document.createElement('div');
+            div.className = `flex flex-col mb-3 msg-pop ${side === 'self' ? 'items-end' : 'items-start'}`;
+            div.innerHTML = `<div class="p-3 rounded-2xl text-xs max-w-[85%] ${side === 'self' ? 'theme-bg text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none theme-border'}">${content}</div>`;
+            $('#chat-messages').appendChild(div);
+            $('#chat-messages').scrollTop = $('#chat-messages').scrollHeight;
+        }
+
+        function shareRoom() {
+            const url = `${window.location.origin}${window.location.pathname}?sala=${$('#room').value}&senha=${$('#pass').value}`;
+            navigator.clipboard.writeText(url);
+            alert("Link de convite copiado!");
+        }
+
+        function updateStatusUI(s) {
+            const b = $('#status-ball'), t = $('#conn-status');
+            b.className = `w-2.5 h-2.5 rounded-full ${s === 'online' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500 shadow-[0_0_8px_red]'}`;
+            t.innerText = s === 'online' ? "Online" : "Offline";
+        }
+
+        function sysMsg(u, t) {
+            const p = document.createElement('p');
+            p.className = "text-center text-[8px] text-gray-500 uppercase my-2 font-bold";
+            p.innerText = `// ${t} //`;
+            $('#chat-messages').appendChild(p);
+        }
+
+        function toggleTypingUI(show, user) {
+            $('#typing-ui').innerText = `${user} digitando...`;
+            $('#typing-ui').style.display = show ? 'block' : 'none';
+            if(show) setTimeout(() => $('#typing-ui').style.display = 'none', 3000);
+        }
 
         function setTheme(c) {
             document.documentElement.style.setProperty('--main', c);
@@ -131,247 +287,15 @@
             localStorage.setItem('tp_color', c);
         }
 
-        // --- SEGURANÇA ---
-        const encrypt = (txt) => CryptoJS.AES.encrypt(txt, roomKey).toString();
-        const decrypt = (hash) => {
-            try { return CryptoJS.AES.decrypt(hash, roomKey).toString(CryptoJS.enc.Utf8); }
-            catch(e) { return "Erro"; }
-        };
-
-        // --- NOTIFICAÇÕES EXTERNAS ---
-        function requestNotifyPermission() {
-            if ("Notification" in window) Notification.requestPermission();
-        }
-
-        function pushNotification(title, body) {
-            if (document.hidden && Notification.permission === "granted") {
-                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/5962/5962461.png' });
-            }
-        }
-
-        // --- STATUS E PRESENÇA ---
-        function updateUIStatus(status) {
-            const ball = $('#status-ball');
-            const label = $('#conn-status');
-            if (status === 'online') {
-                ball.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]";
-                label.innerText = "On-line";
-            } else if (status === 'afk') {
-                ball.className = "w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_10px_#eab308]";
-                label.innerText = "Ausente (AFK)";
-            } else {
-                ball.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_red]";
-                label.innerText = "Off-line";
-                $('#partner-display').innerText = "Aguardando...";
-            }
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            const status = document.hidden ? 'afk' : 'online';
-            if(connections.length > 0) connections.forEach(c => c.send({type: 'presence', val: status}));
-        });
-
-        // --- CORE P2P ---
-        function start(isHost) {
-            requestNotifyPermission();
-            myNick = $('#nick').value.trim();
-            const r = $('#room').value.trim().toLowerCase().replace(/\s+/g, '-');
-            roomKey = $('#pass').value.trim();
-            if(!myNick || !r || !roomKey) return;
-
-            localStorage.setItem('tp_nick', myNick);
-            localStorage.setItem('tp_room', r);
-            localStorage.setItem('tp_pass', roomKey);
-
-            peer = new Peer(isHost ? `room-${r}` : undefined);
-
-            peer.on('open', () => {
-                $('#lobby-ui').classList.add('hidden');
-                $('#chat-ui').classList.replace('hidden', 'flex');
-                if(!isHost) connect(`room-${r}`);
-                addCallLog("Conectando ao servidor seguro...");
-            });
-
-            peer.on('connection', setupConn);
-            peer.on('call', call => {
-                currentCall = call;
-                $('#caller-name').innerText = $('#partner-display').innerText;
-                $('#call-modal').classList.remove('hidden');
-                ringTone.play();
-                pushNotification("Chamada de Voz", "Alguém está te ligando!");
-            });
-        }
-
-        function connect(id) {
-            setupConn(peer.connect(id, {reliable: true}));
-        }
-
-        function setupConn(c) {
-            c.on('open', () => {
-                c.send({type: 'auth', nick: myNick, key: encrypt('valid')});
-                
-                c.on('data', data => {
-                    if(data.type === 'auth') {
-                        if(decrypt(data.key) !== 'valid') return c.close();
-                        $('#partner-display').innerText = data.nick;
-                        updateUIStatus('online');
-                        addCallLog(`${data.nick} entrou na conversa`);
-                        notifSound.play();
-                    }
-                    if(data.type === 'presence') updateUIStatus(data.val);
-                    if(data.type === 'msg') {
-                        const txt = decrypt(data.txt);
-                        renderMsg(data.user, txt, 'other');
-                        pushNotification(data.user, txt);
-                    }
-                    if(data.type === 'file') renderMsg(data.user, data.file, 'other', true);
-                    if(data.type === 'call-log') addCallLog(data.txt);
-                    if(data.type === 'typing') {
-                        const ui = $('#typing-ui');
-                        ui.innerText = `${data.user} digitando...`;
-                        ui.style.display = 'block';
-                        setTimeout(() => ui.style.display = 'none', 2000);
-                    }
-                });
-
-                c.on('close', () => {
-                    updateUIStatus('offline');
-                    addCallLog("O parceiro saiu da sala");
-                });
-                connections.push(c);
-            });
-        }
-
-        // --- MENSAGENS E ARQUIVOS ---
-        function sendMsg() {
-            const txt = $('#msg-input').value.trim();
-            if(!txt || connections.length === 0) return;
-            const encrypted = encrypt(txt);
-            connections.forEach(c => c.send({type: 'msg', user: myNick, txt: encrypted}));
-            renderMsg(myNick, txt, 'self');
-            $('#msg-input').value = '';
-        }
-
-        function handleFile(input) {
-            const file = input.files[0];
-            if(!file || connections.length === 0) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                const fileData = { name: file.name, type: file.type, bin: reader.result };
-                connections.forEach(c => c.send({type:'file', user: myNick, file: fileData}));
-                renderMsg(myNick, fileData, 'self', true);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function renderMsg(user, content, side, isFile = false) {
-            const container = $('#chat-messages');
-            const div = document.createElement('div');
-            div.className = `flex flex-col mb-3 msg-pop ${side === 'self' ? 'items-end' : 'items-start'}`;
-            div.dataset.sender = user;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `p-3 rounded-2xl text-xs max-w-[85%] ${side === 'self' ? 'theme-bg text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none theme-border'}`;
-            
-            if(isFile) {
-                if(content.type.startsWith('image/')) {
-                    bubble.innerHTML = `<img src="${content.bin}" class="rounded-lg max-h-48 mb-2">`;
-                } else {
-                    bubble.innerHTML = `<div class="flex items-center gap-2 mb-2 bg-black/20 p-2 rounded-lg border border-white/5">📄 <b>${content.name}</b></div>`;
-                }
-                bubble.innerHTML += `<a href="${content.bin}" download="${content.name}" class="block text-center text-[10px] font-black underline uppercase py-1">Baixar</a>`;
-                bubble.dataset.text = `[Arquivo: ${content.name}]`;
-            } else {
-                bubble.innerText = content;
-                bubble.dataset.text = content;
-            }
-
-            div.appendChild(bubble);
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // --- CHAMADAS ---
-        async function startCall() {
-            if(connections.length === 0) return;
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({audio: true});
-                currentCall = peer.call(connections[0].peer, localStream);
-                addCallLog("Você iniciou uma ligação");
-                connections.forEach(c => c.send({type: 'call-log', txt: "Chamada em curso..."}));
-                setupCallHandlers(currentCall);
-            } catch(e) { alert("Microfone bloqueado!"); }
-        }
-
-        function setupCallHandlers(call) {
-            call.on('stream', stream => {
-                const audio = new Audio(); audio.srcObject = stream; audio.play();
-                addCallLog("Ligação atendida");
-            });
-            call.on('close', () => {
-                if(localStream) localStream.getTracks().forEach(t => t.stop());
-                addCallLog("Chamada encerrada");
-            });
-        }
-
-        function answerCall() {
-            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-                localStream = stream;
-                currentCall.answer(stream);
-                setupCallHandlers(currentCall);
-                $('#call-modal').classList.add('hidden');
-                ringTone.pause();
-            });
-        }
-
-        function rejectCall() {
-            currentCall.close();
-            $('#call-modal').classList.add('hidden');
-            ringTone.pause();
-            addCallLog("Chamada recusada");
-        }
-
-        // --- UTILITÁRIOS ---
-        function addCallLog(txt) {
-            const container = $('#chat-messages');
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            container.insertAdjacentHTML('beforeend', `<div class="w-full text-center my-2"><div class="call-log">📞 ${txt} • ${time}</div></div>`);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function shareRoom() {
-            const url = `${window.location.origin}${window.location.pathname}?s=${$('#room').value}&p=${$('#pass').value}`;
-            const text = `🚀 Entre no meu chat seguro!\n🆔 Sala: ${$('#room').value}\n🔑 Senha: ${$('#pass').value}\n\nLink: ${url}`;
-            if (navigator.share) navigator.share({ title: 'Chat P2P', text: text });
-            else { navigator.clipboard.writeText(text); alert("Dados de acesso copiados!"); }
-        }
-
-        function exportChat() {
-            const msgs = document.querySelectorAll('#chat-messages > .msg-pop');
-            let output = "__________HISTÓRICO CHAT P2P__________\n\n";
-            msgs.forEach(m => {
-                const sender = m.dataset.sender;
-                const text = m.querySelector('div').dataset.text;
-                if(sender && text) output += `${sender}: ${text}\n`;
-            });
-            const blob = new Blob([output], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `conversa-${$('#room').value}.txt`;
-            a.click();
-        }
-
-        $('#msg-input').oninput = () => { if(connections.length > 0) connections.forEach(c => c.send({type: 'typing', user: myNick})); };
-        $('#msg-input').onkeypress = (e) => e.key === 'Enter' && sendMsg();
         function openSettings() { $('#modal').classList.remove('hidden'); }
         function closeSettings() { $('#modal').classList.add('hidden'); }
-        function clearMessages() { $('#chat-messages').innerHTML = ""; }
         function exitChat() { location.reload(); }
         function clearAllData() { localStorage.clear(); location.reload(); }
-        $('#fs-btn').onclick = () => { 
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        };
+        function clearMessages() { $('#chat-messages').innerHTML = ""; }
+
+        $('#msg-input').oninput = () => connections.forEach(c => c.send({type: 'typing', user: myNick}));
+        $('#msg-input').onkeypress = (e) => e.key === 'Enter' && sendMsg();
     </script>
 </body>
 </html>
+

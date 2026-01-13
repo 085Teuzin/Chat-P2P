@@ -2,108 +2,291 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Chat P2P - Made By: @085_Teuzinnn</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --main: #f97316; --glow: rgba(249, 115, 22, 0.4); }
-        body { background: radial-gradient(circle at top, #0f172a 0%, #05070a 100%); color: #f8fafc; overflow: hidden; height: 100vh; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .theme-border { border: 1px solid var(--main) !important; }
-        .theme-text { color: var(--main) !important; }
-        .theme-bg { background-color: var(--main) !important; }
-        .theme-shadow { box-shadow: 0 0 30px var(--glow); }
-        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
-        #chat-messages::-webkit-scrollbar { width: 5px; }
-        #chat-messages::-webkit-scrollbar-thumb { background: var(--main); border-radius: 10px; }
-        .msg-pop { animation: slideIn 0.2s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .call-anim { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        :root { --orange: #f97316; --dark: #09090b; --card: #18181b; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            height: 100dvh; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            overflow: hidden; 
+        }
+        
+        #app-container { 
+            width: 100%; 
+            max-width: 450px; 
+            background-color: var(--dark); 
+            height: 100dvh; /* Altura dinâmica para mobile */
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+        
+        #lobby { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            padding: 24px; 
+            text-align: center; 
+        }
+
+        #chat-screen { 
+            display: none; 
+            flex-direction: column; 
+            height: 100dvh; 
+        }
+        
+        #messages { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            background-image: radial-gradient(#1a1a1a 1px, transparent 1px); 
+            background-size: 20px 20px; 
+        }
+        
+        .msg { 
+            max-width: 80%; 
+            padding: 10px 14px; 
+            border-radius: 18px; 
+            font-size: 15px; 
+            line-height: 1.4; 
+        }
+        .msg-me { align-self: flex-end; background: var(--orange); color: white; border-bottom-right-radius: 2px; }
+        .msg-them { align-self: flex-start; background: var(--card); border: 1px solid #27272a; border-bottom-left-radius: 2px; }
+        
+        .input-area { 
+            background: #121214; 
+            padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); /* Espaçamento para o rodapé do celular */
+            border-top: 1px solid #27272a; 
+        }
+        
+        #call-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(9,9,11,0.98); 
+            z-index: 100; 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .status-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        #messages::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div id="lobby-ui" class="w-full max-w-2xl flex flex-col items-center animate__animated animate__fadeIn">
-        <div class="w-full flex justify-end gap-2 mb-2">
-            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center glass-panel rounded-lg hover:scale-110 transition-all theme-border text-xs">⚙️</button>
-            <button id="fs-btn" class="w-8 h-8 flex items-center justify-center glass-panel rounded-lg hover:scale-110 transition-all theme-border text-xs">📺</button>
-        </div>
-        <div class="text-center mb-6">
-            <h1 class="text-4xl font-[900] theme-text uppercase tracking-tighter">Chat P2P</h1>
-            <h2 class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Chamadas de Voz Ativadas</h2>
-        </div>
-        <div id="lobby-box" class="w-full glass-panel p-6 rounded-[2rem] theme-shadow space-y-4">
-            <div class="space-y-3">
-                <input type="text" id="nick" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="👤 Seu apelido">
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="text" id="room" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="🆔️ Sala">
-                    <input type="password" id="pass" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 focus:outline-none theme-border transition-all text-sm" placeholder="🔑 Senha">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="start(true)" class="theme-bg text-white font-black py-4 rounded-xl active:scale-95 transition-all text-xs uppercase tracking-widest">Criar Sala</button>
-                <button onclick="start(false)" class="bg-transparent theme-text font-black py-4 rounded-xl active:scale-95 transition-all theme-border text-xs uppercase tracking-widest">Entrar</button>
+<div id="app-container">
+    <div id="lobby">
+        <h1 class="text-4xl font-black text-orange-500 mb-2">Chat P2P</h1>
+        <h2 class="text-zinc-500 text-sm mb-10 font-medium">Dica: Use o mesmo nome de sala</h2>
+        
+        <div class="space-y-4">
+            <input type="text" id="userName" placeholder="Seu Nome" class="w-full p-4 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-orange-500 transition-all">
+            <input type="text" id="roomName" placeholder="Nome da Sala" class="w-full p-4 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-orange-500 transition-all">
+            
+            <div class="flex gap-3 pt-4">
+                <button onclick="initPeer(true)" class="flex-1 bg-orange-500 p-4 rounded-2xl font-bold active:scale-95 transition-transform">Criar</button>
+                <button onclick="initPeer(false)" class="flex-1 border border-orange-500 text-orange-500 p-4 rounded-2xl font-bold active:scale-95 transition-transform">Entrar</button>
             </div>
         </div>
+
+        <footer class="text-center mt-12 text-gray-500 text-xs">
+            Made By: <a href="https://instagram.com/085_Teuzinnn" target="_blank" class="text-blue-400 hover:text-blue-300 font-semibold transition duration-200">@085_Teuzinnn</a>
+        </footer>
     </div>
 
-    <main id="chat-ui" class="hidden w-full max-w-3xl flex-col glass-panel rounded-[2rem] overflow-hidden animate__animated animate__zoomIn theme-shadow h-[85vh]">
-        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
+    <div id="chat-screen">
+        <header class="p-4 bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div id="status-ball" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_red]"></div>
+                <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold" id="avatar">?</div>
                 <div>
-                    <p id="partner-name" class="text-[10px] font-black uppercase tracking-wider theme-text">Aguardando...</p>
-                    <p id="conn-status" class="text-[8px] text-gray-500 uppercase font-bold tracking-widest">Desconectado</p>
+                    <p id="peer-name" class="font-bold text-sm">Desconectado</p>
+                    <p class="text-[10px] text-zinc-400"><span class="status-dot"></span>Online</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="startCall()" id="call-btn" class="text-[8px] font-black theme-text px-2 py-1 border border-green-500/20 rounded-lg hover:bg-green-500/10 uppercase">📞</button>
-                <button onclick="shareRoom()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">🔗</button>
-                <button onclick="exportChat()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">📤</button>
-                <button onclick="clearMessages()" class="text-[8px] font-black theme-text px-2 py-1 border border-orange-500/20 rounded-lg hover:bg-orange-500/10 uppercase">🧹</button>
-                <button onclick="exitChat()" class="text-[8px] font-black text-red-500 px-2 py-1 border border-red-500/20 rounded-lg hover:bg-red-500/10 uppercase">🚪</button>
+            <div class="flex gap-5 items-center">
+                <button onclick="startAudioCall()" class="text-xl active:scale-110 transition">📞</button>
+                <button onclick="clearChat()" class="text-xl active:scale-110 transition">🧹</button>
+                <button onclick="exitRoom()" class="text-xl active:scale-110 transition">🚪</button>
+            </div>
+        </header>
+
+        <div id="messages"></div>
+
+        <div id="typing-status" class="px-4 text-[10px] text-orange-500 h-4 italic"></div>
+
+        <div class="input-area">
+            <div class="flex items-center gap-2 bg-zinc-800 rounded-2xl p-1 px-3 border border-zinc-700">
+                <label class="cursor-pointer text-xl p-1">
+                    📎 <input type="file" id="fileInput" class="hidden" onchange="handleFile(this)">
+                </label>
+                <input type="text" id="msgInput" oninput="sendTyping()" placeholder="Mensagem..." class="flex-1 p-2 bg-transparent outline-none text-sm text-white">
+                <button onclick="sendMessage()" class="bg-orange-500 w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
             </div>
         </div>
-        <div id="chat-messages" class="flex-grow p-4 overflow-y-auto flex flex-col gap-3"></div>
-        <div id="typing-ui" class="px-4 text-[10px] theme-text font-bold" style="display:none">...</div>
-        <div class="p-3 bg-black/50 border-t border-white/10 flex items-center gap-2">
-            <label class="cursor-pointer group">
-                <div class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center theme-border text-lg group-hover:scale-110 transition-all">📎</div>
-                <input type="file" id="attach" class="hidden" onchange="handleFile(this)">
-            </label>
-            <input type="text" id="msg-input" class="flex-grow bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none theme-border transition-all text-xs" placeholder="Escreva algo...">
-            <button onclick="sendMsg()" class="w-10 h-10 theme-bg rounded-xl flex items-center justify-center active:scale-90 transition-all theme-border">
-                <svg viewBox="0 0 24 24" class="w-4 h-4 fill-white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-            </button>
-        </div>
-    </main>
-
-    <div id="call-modal" class="fixed inset-0 bg-black/90 hidden z-[60] flex flex-col items-center justify-center p-6">
-        <div class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center call-anim mb-8">
-            <span class="text-4xl">📞</span>
-        </div>
-        <h2 id="caller-name" class="text-2xl font-black theme-text mb-2 uppercase tracking-tighter">Ligação...</h2>
-        <p class="text-gray-400 text-xs mb-10 uppercase tracking-widest">Chamada de Voz Recebida</p>
-        <div class="flex gap-6">
-            <button onclick="answerCall()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-all">✔️</button>
-            <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-all">✖️</button>
-        </div>
     </div>
 
-    <div id="active-call-ui" class="fixed bottom-24 right-6 hidden z-[55] glass-panel p-4 rounded-2xl theme-border flex items-center gap-4 animate__animated animate__slideInRight">
-        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <span class="text-[10px] font-black uppercase tracking-widest">Em Ligação</span>
-        <button onclick="endCall()" class="bg-red-500 px-3 py-1 rounded-lg text-[10px] font-bold">DESLIGAR</button>
+    <div id="call-overlay">
+        <div class="w-24 h-24 bg-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 animate-bounce">📞</div>
+        <p class="text-xl font-bold mb-8">Em ligação...</p>
+        <button onclick="endCall()" class="bg-red-600 px-12 py-4 rounded-full font-bold shadow-lg active:scale-95">Desligar</button>
+        <audio id="remoteAudio" autoplay></audio>
     </div>
+</div>
 
-    <div id="modal" class="fixed inset-0 bg-black/95 hidden z-50 flex items-center justify-center p-6 animate__animated animate__fadeIn">
-        <div class="glass-panel w-full max-w-xs rounded-[2rem] p-6 space-y-5 theme-border">
-            <h3 class="font-black text-center theme-text tracking-widest text-[11px] uppercase">Configurações</h3>
-            <div class="grid grid-cols-5 gap-3 justify-items-center">
+<script>
+    let peer, conn, myName, myStream;
+    const msgInput = document.getElementById('msgInput');
+    const messagesDiv = document.getElementById('messages');
+
+    function initPeer(isHost) {
+        myName = document.getElementById('userName').value.trim();
+        let room = document.getElementById('roomName').value.trim();
+        if (!myName || !room) return alert("Preencha os campos!");
+
+        const cleanId = "P2P_CHAT_" + room.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        peer = isHost ? new Peer(cleanId) : new Peer();
+
+        peer.on('open', (id) => {
+            if (!isHost) {
+                conn = peer.connect(cleanId);
+                setupConnection();
+            }
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            setupConnection();
+        });
+
+        peer.on('call', (call) => {
+            if (confirm("Atender ligação de voz?")) {
+                navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                    call.answer(stream);
+                    document.getElementById('call-overlay').style.display = 'flex';
+                    call.on('stream', (remoteS) => {
+                        document.getElementById('remoteAudio').srcObject = remoteS;
+                    });
+                });
+            }
+        });
+
+        peer.on('error', () => {
+            alert("Erro: Verifique se a sala já existe.");
+            location.reload();
+        });
+    }
+
+    function setupConnection() {
+        conn.on('open', () => {
+            conn.send({ type: 'intro', name: myName });
+        });
+
+        conn.on('data', (data) => {
+            if (data.type === 'intro') {
+                document.getElementById('peer-name').innerText = data.name;
+                document.getElementById('avatar').innerText = data.name.charAt(0).toUpperCase();
+            } else if (data.type === 'text') {
+                appendMsg(data.name, data.msg, 'them');
+            } else if (data.type === 'file') {
+                appendFile(data.name, data.file, data.fileName, 'them');
+            } else if (data.type === 'typing') {
+                document.getElementById('typing-status').innerText = data.is ? 'Digitando...' : '';
+            }
+        });
+    }
+
+    function sendMessage() {
+        const text = msgInput.value.trim();
+        if (!text || !conn) return;
+        conn.send({ type: 'text', name: myName, msg: text });
+        appendMsg(myName, text, 'me');
+        msgInput.value = '';
+        sendTyping(false);
+    }
+
+    function appendMsg(user, msg, side) {
+        const div = document.createElement('div');
+        div.className = `msg ${side === 'me' ? 'msg-me' : 'msg-them'}`;
+        div.innerText = msg;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file || !conn) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            conn.send({ type: 'file', name: myName, file: e.target.result, fileName: file.name });
+            appendFile(myName, e.target.result, file.name, 'me');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function appendFile(user, data, name, side) {
+        const div = document.createElement('div');
+        div.className = `msg ${side === 'me' ? 'msg-me' : 'msg-them'}`;
+        if (data.startsWith('data:image')) {
+            div.innerHTML = `<img src="${data}" class="rounded-lg max-w-full">`;
+        } else {
+            div.innerHTML = `<div class="flex items-center gap-2">📄 <span class="text-xs">${name}</span></div>`;
+        }
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function sendTyping(force = null) {
+        if (conn) conn.send({ type: 'typing', is: force !== null ? force : msgInput.value.length > 0 });
+    }
+
+    function clearChat() {
+        if (confirm("Limpar toda a conversa?")) messagesDiv.innerHTML = "";
+    }
+
+    function exitRoom() {
+        if (confirm("Deseja sair da sala?")) location.reload();
+    }
+
+    async function startAudioCall() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const call = peer.call(conn.peer, stream);
+            document.getElementById('call-overlay').style.display = 'flex';
+            call.on('stream', (remoteS) => {
+                document.getElementById('remoteAudio').srcObject = remoteS;
+            });
+        } catch (e) { alert("Sem acesso ao microfone."); }
+    }
+
+    function endCall() { location.reload(); }
+
+    msgInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+</script>
+</body>
+</html>            <div class="grid grid-cols-5 gap-3 justify-items-center">
                 <button onclick="setTheme('#f97316')" class="w-9 h-9 rounded-xl bg-orange-500"></button>
                 <button onclick="setTheme('#22c55e')" class="w-9 h-9 rounded-xl bg-green-500"></button>
                 <button onclick="setTheme('#3b82f6')" class="w-9 h-9 rounded-xl bg-blue-500"></button>
@@ -298,4 +481,5 @@
     </script>
 </body>
 </html>
+
 

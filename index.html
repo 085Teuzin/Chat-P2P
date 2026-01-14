@@ -122,8 +122,6 @@
         let peer = null, connections = [], myNick = "", roomKey = "", currentCall = null, localStream = null;
         const $ = document.querySelector.bind(document);
 
-        // --- SISTEMA DE CHAMADA ---
-
         async function startCall() {
             if (connections.length === 0) return alert("Ninguém na sala para ligar!");
             try {
@@ -132,9 +130,8 @@
                 currentCall = peer.call(partnerId, localStream);
                 setupCallHandlers(currentCall);
                 $('#active-call-ui').classList.remove('hidden');
-                sysMsg("SISTEMA", "Chamando parceiro...");
             } catch (err) {
-                alert("Erro ao acessar microfone. Verifique as permissões HTTPS.");
+                alert("Erro ao acessar microfone. Use HTTPS.");
             }
         }
 
@@ -178,8 +175,6 @@
             currentCall = null;
         }
 
-        // --- LÓGICA DO CHAT ---
-
         window.onload = () => {
             const params = new URLSearchParams(window.location.search);
             if(params.has('sala')) $('#room').value = params.get('sala');
@@ -200,7 +195,16 @@
             localStorage.setItem('tp_room', r);
             localStorage.setItem('tp_pass', roomKey);
 
-            peer = new Peer(isHost ? `room-${r}` : undefined, { debug: 1 });
+            peer = new Peer(isHost ? `room-${r}` : undefined, { 
+                debug: 1,
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
             
             peer.on('open', () => {
                 $('#lobby-ui').classList.add('hidden');
@@ -210,7 +214,6 @@
 
             peer.on('connection', setupConn);
 
-            // Handler para receber ligação
             peer.on('call', call => {
                 currentCall = call;
                 $('#caller-name').innerText = $('#partner-name').innerText;
@@ -230,11 +233,9 @@
                     if(data.type === 'auth') {
                         $('#partner-name').innerText = data.nick;
                         updateStatusUI('online');
-                        sysMsg("SISTEMA", `${data.nick} entrou.`);
                     }
                     if(data.type === 'msg') renderMsg(data.user, CryptoJS.AES.decrypt(data.txt, roomKey).toString(CryptoJS.enc.Utf8), 'other');
                     if(data.type === 'typing') toggleTypingUI(true, data.user);
-                    if(data.type === 'status') updateStatusUI(data.val);
                 });
                 connections.push(c);
             });
@@ -266,13 +267,6 @@
             const b = $('#status-ball'), t = $('#conn-status');
             b.className = `w-2.5 h-2.5 rounded-full ${s === 'online' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500 shadow-[0_0_8px_red]'}`;
             t.innerText = s === 'online' ? "Online" : "Offline";
-        }
-
-        function sysMsg(u, t) {
-            const p = document.createElement('p');
-            p.className = "text-center text-[8px] text-gray-500 uppercase my-2 font-bold";
-            p.innerText = `// ${t} //`;
-            $('#chat-messages').appendChild(p);
         }
 
         function toggleTypingUI(show, user) {
